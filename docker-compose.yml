@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: zarpay-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: zarpay
+      POSTGRES_PASSWORD: zarpay
+      POSTGRES_DB: zarpay
+    ports:
+      - "5450:5432"
+    volumes:
+      - zarpay-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zarpay -d zarpay"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  zarpay-pgdata:

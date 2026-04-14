@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Brand HSL values (Tailwind reads these via hsl(var(--token))) */
+    --primary-900: 213 71% 16%; /* #0B2545 */
+    --primary-700: 213 65% 22%; /* #13315C */
+    --primary-100: 217 53% 94%; /* #E8EEF7 */
+
+    --accent-500: 42 100% 50%; /* #FFB400 */
+    --accent-600: 39 100% 45%; /* #E69F00 */
+
+    --success-500: 165 64% 33%; /* #1F8A70 */
+    --success-100: 156 47% 93%; /* #E6F4F0 */
+
+    --warning-500: 43 100% 45%; /* #E6A700 */
+    --warning-100: 45 100% 94%; /* #FFF7E0 */
+
+    --danger-500: 0 62% 56%; /* #D64545 */
+    --danger-600: 0 62% 48%;
+    --danger-100: 0 67% 95%; /* #FBEAEA */
+
+    --bg-0: 0 0% 100%;
+    --bg-50: 213 33% 97%; /* #F6F8FB */
+
+    --text-900: 213 60% 11%; /* #0B1A2C */
+    --text-700: 213 32% 21%; /* #243447 */
+    --text-500: 213 16% 43%; /* #5B6B7F */
+    --text-300: 213 17% 67%; /* #9BA8B8 */
+
+    --border: 215 26% 92%; /* #E6EAF0 */
+    --border-strong: 215 21% 83%; /* #C9D1DC */
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1,
+      "ss01" 1;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    @apply bg-bg-50 text-text-900 font-sans text-body;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display text-text-900;
+  }
+
+  /* Tabular numbers everywhere a number lives */
+  .tabular,
+  .tabular-nums,
+  td.num,
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer utilities {
+  .container-marketing {
+    @apply mx-auto w-full max-w-[1080px] px-4 md:px-6;
+  }
+  .container-app {
+    @apply mx-auto w-full max-w-[1200px] px-4 md:px-6;
+  }
+}

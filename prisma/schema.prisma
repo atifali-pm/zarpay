@@ -1,0 +1,315 @@
+// Zarpay schema : see project_zarpay_data_model.md for the canonical model.
+// Money: GBP decimal(12,2), PKR decimal(14,2), rate decimal(12,6), spread int (bps).
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = []
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Enums ----------
+
+enum UserRole {
+  sender
+  reviewer
+  compliance
+  admin
+}
+
+enum KycStatus {
+  unverified
+  pending
+  approved
+  rejected
+}
+
+enum KycDocType {
+  id_front
+  id_back
+  selfie
+  proof_of_address
+}
+
+enum KycDocStatus {
+  pending
+  approved
+  rejected
+}
+
+enum PayoutMethod {
+  bank
+  mobile_wallet
+  cash_pickup
+}
+
+enum TransferStatus {
+  quote_locked
+  pending_payment
+  funded
+  compliance_hold
+  in_transit
+  delivered
+  cancelled
+  rejected
+}
+
+enum TransferEventType {
+  quote_created
+  payment_initiated
+  payment_funded
+  payment_cancelled
+  compliance_flagged
+  compliance_cleared
+  released_to_payout
+  payout_delivered
+  payout_failed
+  manual_state_change
+}
+
+enum ActorType {
+  system
+  sender
+  admin
+  partner
+}
+
+enum ComplianceRule {
+  amount_threshold
+  velocity
+  sanctions_hit
+  unusual_pattern
+  manual
+}
+
+enum ComplianceSeverity {
+  low
+  medium
+  high
+}
+
+enum ComplianceStatus {
+  open
+  cleared
+  escalated
+  reported
+}
+
+enum FxSource {
+  frankfurter
+  exchangerate_host
+  manual
+}
+
+enum SupportTicketStatus {
+  open
+  pending
+  resolved
+  closed
+}
+
+// ---------- Models ----------
+
+model User {
+  id              String    @id @default(uuid())
+  email           String    @unique
+  phone           String?
+  passwordHash    String    @map("password_hash")
+  role            UserRole  @default(sender)
+  kycStatus       KycStatus @default(unverified) @map("kyc_status")
+  kycTier         Int       @default(0) @map("kyc_tier")
+  fullName        String    @map("full_name")
+  dateOfBirth     DateTime? @map("date_of_birth") @db.Date
+  addressLine1    String?   @map("address_line1")
+  addressLine2    String?   @map("address_line2")
+  city            String?
+  postcode        String?
+  country         String    @default("GB")
+  frozen          Boolean   @default(false)
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  deletedAt       DateTime? @map("deleted_at")
+
+  kycDocuments    KycDocument[] @relation("UserKycDocs")
+  reviewedDocs    KycDocument[] @relation("ReviewedKycDocs")
+  recipients      Recipient[]
+  transfers       Transfer[]
+  reviewedFlags   ComplianceFlag[]
+  auditEntries    AuditLog[]
+  supportTickets  SupportTicket[]
+  supportMessages SupportMessage[]
+
+  @@index([email])
+  @@map("users")
+}
+
+model KycDocument {
+  id          String       @id @default(uuid())
+  userId      String       @map("user_id")
+  user        User         @relation("UserKycDocs", fields: [userId], references: [id])
+  docType     KycDocType   @map("doc_type")
+  filePath    String       @map("file_path")
+  mimeType    String       @map("mime_type")
+  sizeBytes   Int          @map("size_bytes")
+  status      KycDocStatus @default(pending)
+  reviewedById String?     @map("reviewed_by")
+  reviewedBy  User?        @relation("ReviewedKycDocs", fields: [reviewedById], references: [id])
+  reviewedAt  DateTime?    @map("reviewed_at")
+  reviewNotes String?      @map("review_notes")
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([status])
+  @@map("kyc_documents")
+}
+
+model Recipient {
+  id             String       @id @default(uuid())
+  userId         String       @map("user_id")
+  user           User         @relation(fields: [userId], references: [id])
+  fullName       String       @map("full_name")
+  nickname       String?
+  relationship   String?
+  payoutMethod   PayoutMethod @map("payout_method")
+  accountDetails Json         @map("account_details")
+  country        String       @default("PK")
+  phone          String?
+  isVerified     Boolean      @default(true) @map("is_verified")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  deletedAt      DateTime?    @map("deleted_at")
+
+  transfers Transfer[]
+
+  @@index([userId])
+  @@map("recipients")
+}
+
+model Transfer {
+  id                String         @id @default(uuid())
+  reference         String         @unique
+  senderId          String         @map("sender_id")
+  sender            User           @relation(fields: [senderId], references: [id])
+  recipientId       String         @map("recipient_id")
+  recipient         Recipient      @relation(fields: [recipientId], references: [id])
+  sendAmountGbp     Decimal        @map("send_amount_gbp") @db.Decimal(12, 2)
+  receiveAmountPkr  Decimal        @map("receive_amount_pkr") @db.Decimal(14, 2)
+  exchangeRate      Decimal        @map("exchange_rate") @db.Decimal(12, 6)
+  spreadBps         Int            @map("spread_bps")
+  feeGbp            Decimal        @map("fee_gbp") @db.Decimal(8, 2)
+  totalChargedGbp   Decimal        @map("total_charged_gbp") @db.Decimal(12, 2)
+  status            TransferStatus @default(quote_locked)
+  paymentIntentId   String?        @map("payment_intent_id")
+  payoutReference   String?        @map("payout_reference")
+  quoteLockedUntil  DateTime       @map("quote_locked_until")
+  initiatedAt       DateTime?      @map("initiated_at")
+  fundedAt          DateTime?      @map("funded_at")
+  inTransitAt       DateTime?      @map("in_transit_at")
+  deliveredAt       DateTime?      @map("delivered_at")
+  createdAt         DateTime       @default(now()) @map("created_at")
+  updatedAt         DateTime       @updatedAt @map("updated_at")
+
+  events           TransferEvent[]
+  complianceFlags  ComplianceFlag[]
+  supportTickets   SupportTicket[]
+
+  @@index([senderId, createdAt(sort: Desc)])
+  @@index([status])
+  @@index([reference])
+  @@map("transfers")
+}
+
+model TransferEvent {
+  id          String            @id @default(uuid())
+  transferId  String            @map("transfer_id")
+  transfer    Transfer          @relation(fields: [transferId], references: [id])
+  eventType   TransferEventType @map("event_type")
+  fromStatus  String?           @map("from_status")
+  toStatus    String            @map("to_status")
+  actorType   ActorType         @map("actor_type")
+  actorId     String?           @map("actor_id")
+  payload     Json              @default("{}")
+  createdAt   DateTime          @default(now()) @map("created_at")
+
+  @@index([transferId, createdAt])
+  @@map("transfer_events")
+}
+
+model ExchangeRate {
+  id          String   @id @default(uuid())
+  base        String
+  quote       String
+  midRate     Decimal  @map("mid_rate") @db.Decimal(12, 6)
+  spreadBps   Int      @map("spread_bps")
+  effectiveAt DateTime @map("effective_at")
+  source      FxSource
+
+  @@index([base, quote, effectiveAt(sort: Desc)])
+  @@map("exchange_rates")
+}
+
+model ComplianceFlag {
+  id          String             @id @default(uuid())
+  transferId  String             @map("transfer_id")
+  transfer    Transfer           @relation(fields: [transferId], references: [id])
+  rule        ComplianceRule
+  severity    ComplianceSeverity
+  status      ComplianceStatus   @default(open)
+  raisedAt    DateTime           @default(now()) @map("raised_at")
+  reviewedById String?           @map("reviewed_by")
+  reviewedBy  User?              @relation(fields: [reviewedById], references: [id])
+  reviewedAt  DateTime?          @map("reviewed_at")
+  notes       String?
+
+  @@index([status, severity])
+  @@index([transferId])
+  @@map("compliance_flags")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  actorId    String   @map("actor_id")
+  actor      User     @relation(fields: [actorId], references: [id])
+  action     String
+  targetType String   @map("target_type")
+  targetId   String   @map("target_id")
+  diff       Json     @default("{}")
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([actorId, createdAt(sort: Desc)])
+  @@index([targetType, targetId])
+  @@map("audit_log")
+}
+
+model SupportTicket {
+  id         String              @id @default(uuid())
+  userId     String              @map("user_id")
+  user       User                @relation(fields: [userId], references: [id])
+  transferId String?             @map("transfer_id")
+  transfer   Transfer?           @relation(fields: [transferId], references: [id])
+  subject    String
+  status     SupportTicketStatus @default(open)
+  createdAt  DateTime            @default(now()) @map("created_at")
+  updatedAt  DateTime            @updatedAt @map("updated_at")
+
+  messages SupportMessage[]
+
+  @@map("support_tickets")
+}
+
+model SupportMessage {
+  id        String        @id @default(uuid())
+  ticketId  String        @map("ticket_id")
+  ticket    SupportTicket @relation(fields: [ticketId], references: [id])
+  senderId  String        @map("sender_id")
+  sender    User          @relation(fields: [senderId], references: [id])
+  body      String
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  @@map("support_messages")
+}
