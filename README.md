@@ -324,32 +324,6 @@ erDiagram
 
 ---
 
-## Tech stack
-
-<details>
-<summary>Click to expand</summary>
-
-| Layer | Choice | Why |
-|---|---|---|
-| Framework | Next.js 15 (App Router) + TypeScript | Server actions, RSC, file-based routing, deploys to Vercel |
-| Styling | Tailwind CSS + shadcn/ui | Fast to ship, looks native, easy to theme |
-| Database | PostgreSQL 16 | Native JSONB for `account_details`, robust constraints |
-| ORM | Prisma | Strong types, migrations, easy to swap providers |
-| Auth | NextAuth.js (credentials + email) | Session-based, integrates with Prisma adapter |
-| Forms | React Hook Form + Zod | Type-safe, schema-first validation |
-| Payments | Stripe (sandbox in build) | Industry-standard payment-in shape |
-| FX rates | exchangerate.host or Frankfurter (free) | Realistic rates without paid keys |
-| Email | Resend or Postmark | Trivial to wire, free tiers |
-| File storage | Local in dev, S3 in prod | KYC documents |
-| Containerization | Docker Compose | PostgreSQL only locally; app runs on host |
-| Deploy target | Vercel + Neon (managed PostgreSQL) | Zero-config Next.js hosting |
-
-No second framework, no microservices, no mobile app in Phase 1. One Next.js app, one PostgreSQL database, one mental model.
-
-</details>
-
----
-
 ## Architecture decisions
 
 <details>
