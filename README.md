@@ -51,6 +51,58 @@ The UK to Pakistan corridor moved over £4 billion last year. It is one of the m
 
 ---
 
+## Screenshots
+
+Captured by `scripts/screenshots.mjs` (Playwright headless Chromium, 1440x900, 2x device pixel ratio) against the seeded demo data.
+
+### Public
+
+| | |
+|---|---|
+| ![Landing page with live rate calculator](docs/screenshots/01-landing.png) | ![Rate calculator close up](docs/screenshots/02-rate-breakdown.png) |
+| **Landing page.** Headline, trust badges, live rate calculator with mid market rate, disclosed spread, and total visible before any sign up gate. | **Rate calculator.** Type the amount, see exactly what your recipient gets in PKR with the full breakdown. |
+
+### Sender app
+
+| | |
+|---|---|
+| ![Sender dashboard](docs/screenshots/03-sender-dashboard.png) | ![Send money amount step](docs/screenshots/04-send-amount.png) |
+| **Sender dashboard.** Total sent, recent transfers, status pills, and a one click send CTA. | **Send money flow.** Amount, recipient, and review on a single scrollable page. |
+
+| | |
+|---|---|
+| ![Send money review](docs/screenshots/05-send-review.png) | ![Transfer detail with timeline](docs/screenshots/06-transfer-detail.png) |
+| **Send review.** Full breakdown of rate, spread, fee, and total before confirm. Quote locks for 60 minutes on confirm. | **Transfer detail.** Reference, status pill, downloadable receipt, full state timeline, recipient details. |
+
+| | |
+|---|---|
+| ![Transfer history](docs/screenshots/07-transfer-history.png) | ![Saved recipients](docs/screenshots/08-recipients.png) |
+| **Transfer history.** All transfers with status pills and amounts. | **Recipients.** Saved bank, mobile wallet, and cash pickup destinations. |
+
+### KYC
+
+![Pending KYC banner](docs/screenshots/09-kyc-pending.png)
+
+**Pending KYC.** A user who has uploaded ID documents and is awaiting reviewer approval.
+
+### Operations panel
+
+| | |
+|---|---|
+| ![Admin operations dashboard](docs/screenshots/10-admin-dashboard.png) | ![KYC review queue](docs/screenshots/11-admin-kyc-queue.png) |
+| **Operations dashboard.** Volume today, transfers today, pending KYC, open compliance flags, and recent activity. | **KYC queue.** Pending and rejected users with one click into a side by side document viewer. |
+
+| | |
+|---|---|
+| ![Transfer monitoring](docs/screenshots/12-admin-transfers.png) | ![Rate management](docs/screenshots/13-admin-rates.png) |
+| **Transfer monitoring.** Filterable list of every transfer across the platform with reference, sender, recipient, amount, and status. | **Rate management.** Live mid market snapshot, manual override, and rate history. |
+
+![Compliance review](docs/screenshots/14-admin-compliance.png)
+
+**Compliance review.** Open and escalated AML flags with full transfer context and one click clear, escalate, or reject.
+
+---
+
 ## How it works
 
 ### Send money flow
