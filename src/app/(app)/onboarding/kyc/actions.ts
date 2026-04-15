@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import type { KycDocType } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { getKycStorageProvider } from "@/lib/providers/kyc-storage";
@@ -34,11 +35,12 @@ export async function uploadKycAction(_prev: KycState, formData: FormData): Prom
   const storage = getKycStorageProvider();
 
   const userId = session.user.id;
-  for (const [type, file] of [
-    ["id_front" as const, idFront],
-    ["id_back" as const, idBack],
-    ["selfie" as const, selfie],
-  ]) {
+  const entries: Array<[KycDocType, File]> = [
+    ["id_front", idFront],
+    ["id_back", idBack],
+    ["selfie", selfie],
+  ];
+  for (const [type, file] of entries) {
     const buf = Buffer.from(await file.arrayBuffer());
     const stored = await storage.store({
       userId,

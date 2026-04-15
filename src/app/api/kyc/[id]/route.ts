@@ -25,7 +25,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   const file = await storage.read(doc.filePath);
   if (!file) return NextResponse.json({ error: "File missing" }, { status: 404 });
 
-  return new NextResponse(file.bytes, {
+  return new NextResponse(new Uint8Array(file.bytes), {
     headers: {
       "Content-Type": file.mimeType,
       "Cache-Control": "private, no-store",
