@@ -169,6 +169,52 @@ export interface Recipient {
 }
 
 // ---------------------------------------------------------------------------
+// Recipient CRUD request shapes
+// ---------------------------------------------------------------------------
+
+interface RecipientBase {
+  fullName: string;
+  nickname?: string | null;
+  relationship?: string | null;
+  phone?: string | null;
+}
+
+export interface CreateBankRecipient extends RecipientBase {
+  payoutMethod: "bank";
+  bankCode: string;
+  accountNumber: string;
+  accountTitle: string;
+  iban?: string;
+  branch?: string;
+}
+
+export interface CreateWalletRecipient extends RecipientBase {
+  payoutMethod: "mobile_wallet";
+  walletProvider: "easypaisa" | "jazzcash" | "nayapay";
+  walletNumber: string;
+}
+
+export interface CreateCashRecipient extends RecipientBase {
+  payoutMethod: "cash_pickup";
+  cashNetwork: "western_union" | "moneygram";
+}
+
+export type CreateRecipientRequest =
+  | CreateBankRecipient
+  | CreateWalletRecipient
+  | CreateCashRecipient;
+
+export type UpdateRecipientRequest = CreateRecipientRequest;
+
+export interface RecipientListResponse {
+  recipients: Recipient[];
+}
+
+export interface RecipientResponse {
+  recipient: Recipient;
+}
+
+// ---------------------------------------------------------------------------
 // Quotes and transfers
 // ---------------------------------------------------------------------------
 

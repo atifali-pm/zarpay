@@ -1,9 +1,10 @@
 import { Tabs } from "expo-router";
-import { Text } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 /**
- * Bottom tab shell for the authenticated sender area. Only Dashboard is wired
- * in Evening 2. Send / Recipients / Transfers / Profile come in later evenings.
+ * Bottom tab shell for the authenticated sender area. Home is the dashboard,
+ * Recipients is the CRUD for saved payout destinations. More tabs come in
+ * later evenings (Send, Transfers, Profile).
  */
 export default function TabsLayout() {
   return (
@@ -27,13 +28,20 @@ export default function TabsLayout() {
         name="dashboard"
         options={{
           title: "Home",
-          tabBarIcon: ({ color }) => <TabLabel color={color}>●</TabLabel>,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="home-outline" size={size ?? 22} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="recipients"
+        options={{
+          title: "Recipients",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="people-outline" size={size ?? 22} color={color} />
+          ),
         }}
       />
     </Tabs>
   );
-}
-
-function TabLabel({ color, children }: { color: string; children: string }) {
-  return <Text style={{ color, fontSize: 18 }}>{children}</Text>;
 }

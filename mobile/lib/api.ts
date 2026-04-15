@@ -8,6 +8,7 @@ import Constants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
 import type {
   ApiError,
+  CreateRecipientRequest,
   CurrentRateResponse,
   OtpSendResponse,
   OtpVerifyRequest,
@@ -15,11 +16,15 @@ import type {
   PublicUser,
   QuoteRequest,
   QuoteResponse,
+  Recipient,
+  RecipientListResponse,
+  RecipientResponse,
   SignInRequest,
   SignInResponse,
   SignUpRequest,
   SignUpResponse,
   TransferDetail,
+  UpdateRecipientRequest,
 } from "@zarpay/types";
 
 /**
@@ -167,6 +172,38 @@ export const api = {
       throw new ApiClientError(res.status, (data as ApiError) ?? { error: res.statusText });
     }
     return data as { ok: boolean; user: PublicUser };
+  },
+
+  async listRecipients(): Promise<Recipient[]> {
+    const res = await request<RecipientListResponse>("/api/recipients");
+    return res.recipients;
+  },
+
+  async getRecipient(id: string): Promise<Recipient> {
+    const res = await request<RecipientResponse>(`/api/recipients/${encodeURIComponent(id)}`);
+    return res.recipient;
+  },
+
+  async createRecipient(body: CreateRecipientRequest): Promise<Recipient> {
+    const res = await request<RecipientResponse>("/api/recipients", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    return res.recipient;
+  },
+
+  async updateRecipient(id: string, body: UpdateRecipientRequest): Promise<Recipient> {
+    const res = await request<RecipientResponse>(`/api/recipients/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+    return res.recipient;
+  },
+
+  async deleteRecipient(id: string): Promise<void> {
+    await request<{ ok: boolean }>(`/api/recipients/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    });
   },
 
   async quoteTransfer(body: QuoteRequest): Promise<QuoteResponse> {
