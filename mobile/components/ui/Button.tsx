@@ -5,11 +5,13 @@ type Variant = "primary" | "secondary" | "ghost" | "destructive" | "accent" | "d
 type Size = "sm" | "md" | "lg";
 
 /**
- * NativeWind 4 does not reliably apply class names that come from a lookup
- * object on Pressable via the `className` prop (the styles render as text
- * without the background fill). Inline RN `style` props always work, so we
- * resolve colors and sizes that way instead. Layout-only utilities could
- * still use className, but keeping everything in style avoids surprises.
+ * Button uses a View wrapper for visual styling and an inner Pressable for
+ * touch handling. NativeWind 4's JSX interop patches Pressable to accept
+ * className and, in doing so, does not reliably pass through function-form
+ * style props (style={({ pressed }) => ({ ... })}) in some contexts. Putting
+ * backgroundColor, borderRadius, height, etc. on the outer View with a plain
+ * object style avoids the issue entirely and is functionally identical to the
+ * previous approach.
  */
 const VARIANT_STYLES: Record<
   Variant,
@@ -52,6 +54,7 @@ export function Button({
   loading,
   disabled,
   fullWidth = true,
+  onPress,
   ...rest
 }: ButtonProps) {
   const isDisabled = disabled || loading;
@@ -59,10 +62,8 @@ export function Button({
   const sizeStyle = SIZE_STYLES[size];
 
   return (
-    <Pressable
-      {...rest}
-      disabled={isDisabled}
-      style={({ pressed }) => ({
+    <View
+      style={{
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
@@ -73,15 +74,24 @@ export function Button({
         backgroundColor: variantStyle.backgroundColor,
         borderColor: variantStyle.borderColor,
         borderWidth: variantStyle.borderWidth ?? 0,
-        // Keep disabled buttons readable: at 0.5 the navy faded into the
-        // background too much; 0.75 keeps the CTA copy clearly visible.
-        opacity: isDisabled ? 0.75 : pressed ? 0.85 : 1,
-      })}
+        opacity: isDisabled ? 0.75 : 1,
+        overflow: "hidden",
+      }}
     >
-      {loading ? (
-        <ActivityIndicator size="small" color={variantStyle.textColor} />
-      ) : (
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+      <Pressable
+        {...rest}
+        onPress={isDisabled ? undefined : onPress}
+        style={{
+          width: "100%",
+          height: "100%",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {loading ? (
+          <ActivityIndicator size="small" color={variantStyle.textColor} />
+        ) : (
           <Text
             style={{
               color: variantStyle.textColor,
@@ -91,8 +101,8 @@ export function Button({
           >
             {children}
           </Text>
-        </View>
-      )}
-    </Pressable>
+        )}
+      </Pressable>
+    </View>
   );
 }
