@@ -1,11 +1,19 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /**
  * Bottom tab shell for the authenticated sender area.
  * Home + Send + Recipients so far. Transfers history comes in Evening 6.
+ *
+ * Height expands to include the device's bottom safe area so the tap
+ * targets sit above Android's gesture navigation bar. Without this, a
+ * fixed height pushes the icons into the system nav area and taps are
+ * swallowed by the OS.
  */
 export default function TabsLayout() {
+  const insets = useSafeAreaInsets();
+  const bottomInset = Math.max(insets.bottom, 8);
   return (
     <Tabs
       screenOptions={{
@@ -14,8 +22,9 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: "#9BA8B8",
         tabBarStyle: {
           borderTopColor: "#E6EAF0",
-          paddingTop: 6,
-          height: 64,
+          paddingTop: 8,
+          paddingBottom: bottomInset,
+          height: 58 + bottomInset,
         },
         tabBarLabelStyle: {
           fontSize: 11,

@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import type { TransferSummary } from "@zarpay/types";
 import { useAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
@@ -23,6 +24,7 @@ const KYC_LABEL: Record<KycStatus, string> = {
 export default function DashboardScreen() {
   const router = useRouter();
   const { state, signOut } = useAuth();
+  const tabBarHeight = useBottomTabBarHeight();
   const [transfers, setTransfers] = useState<TransferSummary[]>([]);
   const [loadingTransfers, setLoadingTransfers] = useState(true);
 
@@ -60,7 +62,7 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-bg-50">
-      <ScrollView contentContainerClassName="flex-grow px-6 pt-6 pb-12">
+      <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingTop: 24, paddingBottom: tabBarHeight + 24 }}>
         <View className="flex-row items-start justify-between">
           <Logo size="md" />
           <Text

@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { ActivityIndicator, Pressable, Text, View, type PressableProps } from "react-native";
 
-type Variant = "primary" | "secondary" | "ghost" | "destructive" | "accent";
+type Variant = "primary" | "secondary" | "ghost" | "destructive" | "accent" | "dark";
 type Size = "sm" | "md" | "lg";
 
 /**
@@ -25,6 +25,7 @@ const VARIANT_STYLES: Record<
   ghost: { backgroundColor: "transparent", textColor: "#0B2545" },
   destructive: { backgroundColor: "#D64545", textColor: "#FFFFFF" },
   accent: { backgroundColor: "#FFB400", textColor: "#0B1A2C" },
+  dark: { backgroundColor: "#111827", textColor: "#FFFFFF" },
 };
 
 const SIZE_STYLES: Record<
@@ -72,7 +73,9 @@ export function Button({
         backgroundColor: variantStyle.backgroundColor,
         borderColor: variantStyle.borderColor,
         borderWidth: variantStyle.borderWidth ?? 0,
-        opacity: isDisabled ? 0.5 : pressed ? 0.85 : 1,
+        // Keep disabled buttons readable: at 0.5 the navy faded into the
+        // background too much; 0.75 keeps the CTA copy clearly visible.
+        opacity: isDisabled ? 0.75 : pressed ? 0.85 : 1,
       })}
     >
       {loading ? (

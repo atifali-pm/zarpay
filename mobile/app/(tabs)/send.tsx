@@ -11,6 +11,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { Ionicons } from "@expo/vector-icons";
 import type { CurrentRateResponse, Recipient, TransferDetail } from "@zarpay/types";
 import { useAuth } from "@/lib/auth";
 import { api, ApiClientError } from "@/lib/api";
@@ -35,6 +37,7 @@ interface Quote {
 export default function SendScreen() {
   const router = useRouter();
   const { state: authState } = useAuth();
+  const tabBarHeight = useBottomTabBarHeight();
   const [step, setStep] = useState<Step>("form");
   const [amount, setAmount] = useState("500");
   const [recipientId, setRecipientId] = useState<string | null>(null);
@@ -44,6 +47,8 @@ export default function SendScreen() {
   const [transfer, setTransfer] = useState<TransferDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Stable loader: functional setState for recipientId so this callback
+  // identity does not change on every render and starve useFocusEffect.
   const load = useCallback(async () => {
     setLoadError(null);
     try {
@@ -53,21 +58,19 @@ export default function SendScreen() {
       ]);
       setRecipients(recipientsRes);
       setRate(rateRes);
-      if (!recipientId && recipientsRes[0]) {
-        setRecipientId(recipientsRes[0].id);
-      }
+      setRecipientId((prev) => prev ?? recipientsRes[0]?.id ?? null);
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : "Failed to load");
     }
-  }, [recipientId]);
+  }, []);
 
+  // Re-fetch recipients and rate every time the Send tab comes into focus so a
+  // recipient added under the Recipients tab shows up here. Only when the
+  // wizard is on the form step, so we do not blow away an in-progress quote.
   useFocusEffect(
     useCallback(() => {
-      // Re-fetch rate + recipients every time the tab comes into focus, so
-      // a freshly added recipient shows up without a manual refresh.
-      if (step === "form") {
-        void load();
-      }
+      if (step !== "form") return;
+      void load();
     }, [load, step]),
   );
 
@@ -135,7 +138,7 @@ export default function SendScreen() {
   if (!isKycApproved) {
     return (
       <SafeAreaView className="flex-1 bg-bg-50">
-        <ScrollView contentContainerClassName="flex-grow px-6 pt-6 pb-12">
+        <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingTop: 24, paddingBottom: tabBarHeight + 24 }}>
           <Logo size="md" />
           <Text className="mt-8 text-3xl font-bold text-text-900">Verify first</Text>
           <Text className="mt-2 text-base text-text-500">
@@ -157,7 +160,12 @@ export default function SendScreen() {
         className="flex-1"
       >
         <ScrollView
-          contentContainerClassName="flex-grow px-6 pt-6 pb-12"
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingHorizontal: 24,
+            paddingTop: 24,
+            paddingBottom: tabBarHeight + 24,
+          }}
           keyboardShouldPersistTaps="handled"
         >
           <Logo size="md" />
@@ -309,7 +317,7 @@ function FormStep({
       )}
 
       {recipients && recipients.length > 0 && (
-        <View className="mt-3 gap-2">
+        <View className="mt-3" style={{ gap: 10 }}>
           {recipients.map((r) => {
             const selected = r.id === recipientId;
             return (
@@ -317,32 +325,73 @@ function FormStep({
                 key={r.id}
                 onPress={() => onRecipientChange(r.id)}
                 style={{
-                  borderWidth: selected ? 2 : 1,
+                  borderWidth: 2,
                   borderColor: selected ? "#0B2545" : "#E6EAF0",
                   borderRadius: 14,
-                  padding: 14,
-                  backgroundColor: "#FFFFFF",
+                  paddingVertical: 14,
+                  paddingHorizontal: 16,
+                  backgroundColor: selected ? "#E8EEF7" : "#FFFFFF",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 12,
                 }}
               >
-                <Text className="text-base font-semibold text-text-900">{r.fullName}</Text>
-                <Text className="mt-1 text-xs text-text-500">
-                  {r.payoutMethod === "bank"
-                    ? "Bank deposit"
-                    : r.payoutMethod === "mobile_wallet"
-                      ? "Mobile wallet"
-                      : "Cash pickup"}
-                  {r.nickname ? ` · ${r.nickname}` : ""}
-                </Text>
+                <View
+                  style={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: 11,
+                    borderWidth: 2,
+                    borderColor: selected ? "#0B2545" : "#C9D1DC",
+                    backgroundColor: selected ? "#0B2545" : "#FFFFFF",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {selected && <Ionicons name="checkmark" size={14} color="#FFFFFF" />}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text className="text-base font-semibold text-text-900">{r.fullName}</Text>
+                  <Text className="mt-1 text-xs text-text-500">
+                    {r.payoutMethod === "bank"
+                      ? "Bank deposit"
+                      : r.payoutMethod === "mobile_wallet"
+                        ? "Mobile wallet"
+                        : "Cash pickup"}
+                    {r.nickname ? ` · ${r.nickname}` : ""}
+                  </Text>
+                </View>
               </Pressable>
             );
           })}
         </View>
       )}
 
-      <View className="mt-8">
-        <Button size="lg" disabled={!canContinue} onPress={onContinue}>
-          Review transfer
-        </Button>
+      <View
+        style={{
+          marginTop: 32,
+          backgroundColor: "#111827",
+          borderRadius: 14,
+          height: 56,
+          alignItems: "center",
+          justifyContent: "center",
+          opacity: !canContinue ? 0.6 : 1,
+        }}
+      >
+        <Pressable
+          onPress={onContinue}
+          disabled={!canContinue}
+          style={{
+            width: "100%",
+            height: "100%",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Text style={{ color: "#FFFFFF", fontSize: 18, fontWeight: "700" }}>
+            Review transfer
+          </Text>
+        </Pressable>
       </View>
     </View>
   );

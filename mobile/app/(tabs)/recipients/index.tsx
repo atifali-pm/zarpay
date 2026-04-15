@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import type {
   Recipient,
   RecipientBankDetails,
@@ -19,6 +20,7 @@ type LoadState =
 
 export default function RecipientsListScreen() {
   const router = useRouter();
+  const tabBarHeight = useBottomTabBarHeight();
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const [refreshing, setRefreshing] = useState(false);
 
@@ -78,7 +80,12 @@ export default function RecipientsListScreen() {
   return (
     <SafeAreaView className="flex-1 bg-bg-50">
       <ScrollView
-        contentContainerClassName="flex-grow px-6 pt-6 pb-12"
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingHorizontal: 24,
+          paddingTop: 24,
+          paddingBottom: tabBarHeight + 24,
+        }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         <View className="flex-row items-center justify-between">
