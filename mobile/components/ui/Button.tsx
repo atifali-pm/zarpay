@@ -1,38 +1,42 @@
 import { ReactNode } from "react";
-import { ActivityIndicator, Pressable, Text, type PressableProps } from "react-native";
+import { ActivityIndicator, Pressable, Text, View, type PressableProps } from "react-native";
 
 type Variant = "primary" | "secondary" | "ghost" | "destructive" | "accent";
 type Size = "sm" | "md" | "lg";
 
-const VARIANT_CLASS: Record<Variant, string> = {
-  primary: "bg-primary-900 active:bg-primary-700",
-  secondary: "bg-white border border-border-strong active:bg-bg-50",
-  ghost: "bg-transparent active:bg-primary-100",
-  destructive: "bg-danger-500 active:bg-danger-600",
-  accent: "bg-accent-500 active:bg-accent-600",
+/**
+ * NativeWind 4 does not reliably apply class names that come from a lookup
+ * object on Pressable via the `className` prop (the styles render as text
+ * without the background fill). Inline RN `style` props always work, so we
+ * resolve colors and sizes that way instead. Layout-only utilities could
+ * still use className, but keeping everything in style avoids surprises.
+ */
+const VARIANT_STYLES: Record<
+  Variant,
+  { backgroundColor: string; borderColor?: string; borderWidth?: number; textColor: string }
+> = {
+  primary: { backgroundColor: "#0B2545", textColor: "#FFFFFF" },
+  secondary: {
+    backgroundColor: "#FFFFFF",
+    borderColor: "#C9D1DC",
+    borderWidth: 1,
+    textColor: "#0B1A2C",
+  },
+  ghost: { backgroundColor: "transparent", textColor: "#0B2545" },
+  destructive: { backgroundColor: "#D64545", textColor: "#FFFFFF" },
+  accent: { backgroundColor: "#FFB400", textColor: "#0B1A2C" },
 };
 
-const VARIANT_TEXT_CLASS: Record<Variant, string> = {
-  primary: "text-white",
-  secondary: "text-text-900",
-  ghost: "text-primary-900",
-  destructive: "text-white",
-  accent: "text-text-900",
+const SIZE_STYLES: Record<
+  Size,
+  { height: number; paddingHorizontal: number; fontSize: number }
+> = {
+  sm: { height: 40, paddingHorizontal: 16, fontSize: 14 },
+  md: { height: 48, paddingHorizontal: 20, fontSize: 16 },
+  lg: { height: 56, paddingHorizontal: 24, fontSize: 18 },
 };
 
-const SIZE_CLASS: Record<Size, string> = {
-  sm: "h-10 px-4",
-  md: "h-12 px-5",
-  lg: "h-14 px-6",
-};
-
-const SIZE_TEXT_CLASS: Record<Size, string> = {
-  sm: "text-sm",
-  md: "text-base",
-  lg: "text-lg",
-};
-
-interface ButtonProps extends Omit<PressableProps, "children"> {
+interface ButtonProps extends Omit<PressableProps, "children" | "style"> {
   children: ReactNode;
   variant?: Variant;
   size?: Size;
@@ -50,29 +54,41 @@ export function Button({
   ...rest
 }: ButtonProps) {
   const isDisabled = disabled || loading;
+  const variantStyle = VARIANT_STYLES[variant];
+  const sizeStyle = SIZE_STYLES[size];
+
   return (
     <Pressable
       {...rest}
       disabled={isDisabled}
-      className={[
-        "flex-row items-center justify-center rounded-xl",
-        VARIANT_CLASS[variant],
-        SIZE_CLASS[size],
-        fullWidth ? "w-full" : "",
-        isDisabled ? "opacity-50" : "",
-      ]
-        .filter(Boolean)
-        .join(" ")}
+      style={({ pressed }) => ({
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: 14,
+        height: sizeStyle.height,
+        paddingHorizontal: sizeStyle.paddingHorizontal,
+        width: fullWidth ? "100%" : undefined,
+        backgroundColor: variantStyle.backgroundColor,
+        borderColor: variantStyle.borderColor,
+        borderWidth: variantStyle.borderWidth ?? 0,
+        opacity: isDisabled ? 0.5 : pressed ? 0.85 : 1,
+      })}
     >
       {loading ? (
-        <ActivityIndicator
-          size="small"
-          color={variant === "primary" || variant === "destructive" ? "#ffffff" : "#0B2545"}
-        />
+        <ActivityIndicator size="small" color={variantStyle.textColor} />
       ) : (
-        <Text className={`font-semibold ${SIZE_TEXT_CLASS[size]} ${VARIANT_TEXT_CLASS[variant]}`}>
-          {children}
-        </Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <Text
+            style={{
+              color: variantStyle.textColor,
+              fontSize: sizeStyle.fontSize,
+              fontWeight: "600",
+            }}
+          >
+            {children}
+          </Text>
+        </View>
       )}
     </Pressable>
   );

@@ -45,10 +45,9 @@ export default function OtpScreen() {
     setSubmitting(true);
     try {
       await api.verifyOtp({ challengeId: challenge.challengeId, code });
-      // Phone verified. For this build the next step is KYC upload (Evening 3).
-      // For Evening 2 we just drop the user into the dashboard.
+      // Phone verified. Next step is KYC document capture.
       await refresh();
-      router.replace("/(tabs)/dashboard");
+      router.replace("/onboarding/kyc");
     } catch (err) {
       if (err instanceof ApiClientError) {
         setVerifyError(err.message);

@@ -1,4 +1,4 @@
-import { ScrollView, Text, View } from "react-native";
+import { Alert, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/lib/auth";
@@ -70,6 +70,13 @@ export default function DashboardScreen() {
                 </Button>
               </View>
             )}
+            {user.kycStatus === "rejected" && (
+              <View className="mt-4">
+                <Button size="md" onPress={() => router.push("/onboarding/kyc")}>
+                  Re-submit documents
+                </Button>
+              </View>
+            )}
           </View>
         )}
 
@@ -89,7 +96,16 @@ export default function DashboardScreen() {
                 size="lg"
                 variant={user.kycStatus === "approved" ? "accent" : "secondary"}
                 disabled={user.kycStatus !== "approved"}
-                onPress={() => router.push("/(tabs)/dashboard")}
+                onPress={() => {
+                  if (user.kycStatus !== "approved") {
+                    router.push("/onboarding/otp");
+                    return;
+                  }
+                  Alert.alert(
+                    "Send money",
+                    "The send money flow is built in Evening 5. Evenings 3 and 4 ship KYC capture and recipients first.",
+                  );
+                }}
               >
                 {user.kycStatus === "approved" ? "Start a transfer" : "Verify first to send"}
               </Button>

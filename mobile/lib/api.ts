@@ -138,6 +138,37 @@ export const api = {
     });
   },
 
+  async uploadKyc(args: {
+    idType: "passport" | "driving_licence" | "national_id";
+    idFront: { uri: string; mimeType: string };
+    idBack: { uri: string; mimeType: string };
+    selfie: { uri: string; mimeType: string };
+  }): Promise<{ ok: boolean; user: PublicUser }> {
+    const form = new FormData();
+    form.append("id_type", args.idType);
+    const toPart = (uri: string, mimeType: string, name: string) =>
+      // React Native extends FormData to accept { uri, name, type } objects
+      // for file uploads. Cast through unknown to satisfy the DOM lib typing.
+      ({ uri, name, type: mimeType || "image/jpeg" }) as unknown as Blob;
+    form.append("id_front", toPart(args.idFront.uri, args.idFront.mimeType, "id_front.jpg"));
+    form.append("id_back", toPart(args.idBack.uri, args.idBack.mimeType, "id_back.jpg"));
+    form.append("selfie", toPart(args.selfie.uri, args.selfie.mimeType, "selfie.jpg"));
+
+    // Do not set Content-Type so fetch sets the multipart boundary itself.
+    const token = await SecureStore.getItemAsync(TOKEN_KEY);
+    const res = await fetch(`${API_URL}/api/kyc`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: form,
+    });
+    const text = await res.text();
+    const data = text ? (JSON.parse(text) as unknown) : undefined;
+    if (!res.ok) {
+      throw new ApiClientError(res.status, (data as ApiError) ?? { error: res.statusText });
+    }
+    return data as { ok: boolean; user: PublicUser };
+  },
+
   async quoteTransfer(body: QuoteRequest): Promise<QuoteResponse> {
     return request<QuoteResponse>("/api/transfers/quote", {
       method: "POST",
