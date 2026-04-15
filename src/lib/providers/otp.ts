@@ -4,7 +4,18 @@ export interface OtpProvider {
   verify(args: { challengeId: string; code: string }): Promise<{ ok: boolean }>;
 }
 
-const challenges = new Map<string, { phone: string; expiresAt: number }>();
+// Stored on globalThis so the Map survives Next.js dev HMR module reloads and
+// is shared across separate route handlers that each import this module.
+// Without this, /api/auth/otp/send and /api/auth/otp/verify can end up with
+// their own isolated copies of the map.
+interface OtpChallengeStore {
+  __zarpayOtpChallenges?: Map<string, { phone: string; expiresAt: number }>;
+}
+const globalStore = globalThis as unknown as OtpChallengeStore;
+if (!globalStore.__zarpayOtpChallenges) {
+  globalStore.__zarpayOtpChallenges = new Map();
+}
+const challenges = globalStore.__zarpayOtpChallenges;
 
 class DevOtpProvider implements OtpProvider {
   name = "dev";

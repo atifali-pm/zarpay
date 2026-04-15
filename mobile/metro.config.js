@@ -1,3 +1,8 @@
+// Monorepo-aware Metro config for Expo SDK 54. Follows the pattern from
+// https://docs.expo.dev/guides/monorepos/: tell Metro to watch the workspace
+// root so edits to @zarpay/types refresh, and point nodeModulesPaths at both
+// the local and workspace-root node_modules so packages resolve in the right
+// order. Wrapped in withNativeWind for className support.
 const { getDefaultConfig } = require("expo/metro-config");
 const { withNativeWind } = require("nativewind/metro");
 const path = require("path");
@@ -7,17 +12,11 @@ const workspaceRoot = path.resolve(projectRoot, "..");
 
 const config = getDefaultConfig(projectRoot);
 
-// 1. Watch the workspace root so Metro picks up @zarpay/types changes.
 config.watchFolders = [workspaceRoot];
-
-// 2. Let Metro resolve modules from the monorepo node_modules as well.
 config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, "node_modules"),
   path.resolve(workspaceRoot, "node_modules"),
 ];
-
-// 3. Force Metro to resolve (sub-)dependencies only from the local node_modules.
-config.resolver.disableHierarchicalLookup = true;
 
 module.exports = withNativeWind(config, {
   input: "./global.css",
