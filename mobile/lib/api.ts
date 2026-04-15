@@ -9,17 +9,53 @@ import * as SecureStore from "expo-secure-store";
 import type {
   ApiError,
   CurrentRateResponse,
+  OtpSendResponse,
+  OtpVerifyRequest,
+  OtpVerifyResponse,
   PublicUser,
   QuoteRequest,
   QuoteResponse,
   SignInRequest,
   SignInResponse,
+  SignUpRequest,
+  SignUpResponse,
   TransferDetail,
 } from "@zarpay/types";
 
-const API_URL: string =
-  (Constants.expoConfig?.extra as { apiUrl?: string } | undefined)?.apiUrl ??
-  "http://localhost:3010";
+/**
+ * Resolve the backend base URL.
+ *
+ * Order of precedence:
+ * 1. `extra.apiUrl` in app.json, if it points to a non-localhost host (useful
+ *    for EAS builds pointing at a staging or production URL).
+ * 2. `hostUri` from Expo Constants. In Expo Go on LAN mode this is always the
+ *    dev machine's LAN IP plus Metro's port (e.g. "192.168.40.151:8081").
+ *    We strip the Metro port and swap in 3010 for the Next.js API.
+ * 3. localhost fallback for tests.
+ */
+function resolveApiUrl(): string {
+  const extra = Constants.expoConfig?.extra as { apiUrl?: string } | undefined;
+  if (
+    extra?.apiUrl &&
+    !extra.apiUrl.includes("localhost") &&
+    !extra.apiUrl.includes("127.0.0.1")
+  ) {
+    return extra.apiUrl;
+  }
+  const hostUri = Constants.expoConfig?.hostUri ?? Constants.expoGoConfig?.debuggerHost;
+  if (hostUri) {
+    const host = hostUri.split(":")[0];
+    return `http://${host}:3010`;
+  }
+  return "http://localhost:3010";
+}
+
+const API_URL = resolveApiUrl();
+
+if (__DEV__) {
+  // eslint-disable-next-line no-console
+  console.log(`[zarpay-mobile] API base URL = ${API_URL}`);
+}
 
 const TOKEN_KEY = "zarpay.auth.token";
 
@@ -73,12 +109,33 @@ export const api = {
     return result;
   },
 
+  async signUp(body: SignUpRequest): Promise<SignUpResponse> {
+    const result = await request<SignUpResponse>("/api/auth/signup", {
+      method: "POST",
+      body: JSON.stringify(body),
+      auth: false,
+    });
+    await SecureStore.setItemAsync(TOKEN_KEY, result.token);
+    return result;
+  },
+
   async signOut(): Promise<void> {
     await SecureStore.deleteItemAsync(TOKEN_KEY);
   },
 
   async getMe(): Promise<{ user: PublicUser }> {
     return request<{ user: PublicUser }>("/api/me");
+  },
+
+  async sendOtp(): Promise<OtpSendResponse> {
+    return request<OtpSendResponse>("/api/auth/otp/send", { method: "POST" });
+  },
+
+  async verifyOtp(body: OtpVerifyRequest): Promise<OtpVerifyResponse> {
+    return request<OtpVerifyResponse>("/api/auth/otp/verify", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
   },
 
   async quoteTransfer(body: QuoteRequest): Promise<QuoteResponse> {

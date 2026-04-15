@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, SafeAreaView, ScrollView, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, ScrollView, Text, TextInput, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Link, useRouter } from "expo-router";
 import { api, ApiClientError } from "@/lib/api";
 import type { CurrentRateResponse } from "@zarpay/types";
+import { Button } from "@/components/ui/Button";
+import { Logo } from "@/components/ui/Logo";
 
 type RateState =
   | { status: "loading" }
@@ -9,6 +13,7 @@ type RateState =
   | { status: "ok"; rate: CurrentRateResponse };
 
 export default function LandingScreen() {
+  const router = useRouter();
   const [amount, setAmount] = useState("500");
   const [state, setState] = useState<RateState>({ status: "loading" });
 
@@ -53,12 +58,15 @@ export default function LandingScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-bg-50">
-      <ScrollView contentContainerClassName="flex-grow px-6 pt-12 pb-16">
-        <Text className="text-accent-500 font-bold text-3xl">
-          Z<Text className="text-primary-900">arpay</Text>
-        </Text>
+      <ScrollView contentContainerClassName="flex-grow px-6 pt-6 pb-12">
+        <View className="mb-8 flex-row items-center justify-between">
+          <Logo size="md" />
+          <Link href="/signin" asChild>
+            <Text className="text-sm font-semibold text-primary-700">Log in</Text>
+          </Link>
+        </View>
 
-        <Text className="mt-8 text-text-500 text-sm uppercase tracking-widest">
+        <Text className="text-xs font-semibold uppercase tracking-widest text-text-500">
           UK to Pakistan corridor
         </Text>
         <Text className="mt-2 text-4xl font-bold text-text-900">
@@ -70,8 +78,8 @@ export default function LandingScreen() {
           cash pickup, anywhere in Pakistan.
         </Text>
 
-        <View className="mt-8 rounded-2xl border border-border bg-white p-6 shadow-sm">
-          <Text className="text-xs font-medium uppercase tracking-widest text-text-500">
+        <View className="mt-8 rounded-2xl border border-border bg-white p-6">
+          <Text className="text-xs font-semibold uppercase tracking-widest text-text-500">
             You send
           </Text>
           <View className="mt-2 flex-row items-center">
@@ -89,7 +97,7 @@ export default function LandingScreen() {
 
           <View className="my-4 h-px bg-border" />
 
-          <Text className="text-xs font-medium uppercase tracking-widest text-text-500">
+          <Text className="text-xs font-semibold uppercase tracking-widest text-text-500">
             Recipient gets
           </Text>
           <View className="mt-1 flex-row items-baseline">
@@ -107,7 +115,7 @@ export default function LandingScreen() {
           )}
 
           {state.status === "error" && (
-            <View className="mt-6 rounded-lg bg-danger-100 px-4 py-3">
+            <View className="mt-6 rounded-xl bg-danger-100 px-4 py-3">
               <Text className="text-sm text-danger-500">
                 Could not reach the Zarpay backend: {state.message}
               </Text>
@@ -118,7 +126,7 @@ export default function LandingScreen() {
           )}
 
           {breakdown && state.status === "ok" && (
-            <View className="mt-6 gap-y-2 rounded-lg bg-bg-50 p-4">
+            <View className="mt-6 gap-y-2 rounded-xl bg-bg-50 p-4">
               <Row label="Mid market rate" value={`1 GBP = ${breakdown.midRate} PKR`} />
               <Row
                 label={`Our rate (spread ${breakdown.spreadPct}%)`}
@@ -132,7 +140,16 @@ export default function LandingScreen() {
           )}
         </View>
 
-        <Text className="mt-8 text-center text-xs text-text-500">
+        <View className="mt-8 gap-3">
+          <Button size="lg" onPress={() => router.push("/signup")}>
+            Create an account
+          </Button>
+          <Button size="lg" variant="secondary" onPress={() => router.push("/signin")}>
+            I already have an account
+          </Button>
+        </View>
+
+        <Text className="mt-6 text-center text-xs text-text-500">
           Rate from {state.status === "ok" ? state.rate.source : "backend"}. Quote will be locked
           for 60 minutes once you start a transfer.
         </Text>
@@ -145,9 +162,7 @@ function Row({ label, value, bold = false }: { label: string; value: string; bol
   return (
     <View className="flex-row items-center justify-between">
       <Text className="text-xs text-text-500">{label}</Text>
-      <Text
-        className={`text-sm ${bold ? "font-semibold text-text-900" : "text-text-700"}`}
-      >
+      <Text className={`text-sm ${bold ? "font-bold text-text-900" : "text-text-700"}`}>
         {value}
       </Text>
     </View>
