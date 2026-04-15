@@ -2,9 +2,8 @@ import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
 /**
- * Bottom tab shell for the authenticated sender area. Home is the dashboard,
- * Recipients is the CRUD for saved payout destinations. More tabs come in
- * later evenings (Send, Transfers, Profile).
+ * Bottom tab shell for the authenticated sender area.
+ * Home + Send + Recipients so far. Transfers history comes in Evening 6.
  */
 export default function TabsLayout() {
   return (
@@ -30,6 +29,15 @@ export default function TabsLayout() {
           title: "Home",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home-outline" size={size ?? 22} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="send"
+        options={{
+          title: "Send",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="paper-plane-outline" size={size ?? 22} color={color} />
           ),
         }}
       />

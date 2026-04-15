@@ -1,10 +1,15 @@
-import { Alert, ScrollView, Text, View } from "react-native";
+import { useCallback, useState } from "react";
+import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
+import type { TransferSummary } from "@zarpay/types";
 import { useAuth } from "@/lib/auth";
+import { api } from "@/lib/api";
+import { formatGbp, formatPkr, formatRelative } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Logo } from "@/components/ui/Logo";
+import { StatusPill } from "@/components/ui/StatusPill";
 
 type KycStatus = "unverified" | "pending" | "approved" | "rejected";
 
@@ -18,6 +23,25 @@ const KYC_LABEL: Record<KycStatus, string> = {
 export default function DashboardScreen() {
   const router = useRouter();
   const { state, signOut } = useAuth();
+  const [transfers, setTransfers] = useState<TransferSummary[]>([]);
+  const [loadingTransfers, setLoadingTransfers] = useState(true);
+
+  const loadTransfers = useCallback(async () => {
+    try {
+      const list = await api.listTransfers();
+      setTransfers(list);
+    } catch {
+      // Silent on dashboard, just leave empty
+    } finally {
+      setLoadingTransfers(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      void loadTransfers();
+    }, [loadTransfers]),
+  );
 
   if (state.status !== "authenticated") {
     return null;
@@ -25,6 +49,14 @@ export default function DashboardScreen() {
 
   const user = state.user;
   const firstName = user.fullName.split(" ")[0];
+
+  const totalSent = transfers
+    .filter((t) => t.status !== "cancelled" && t.status !== "rejected")
+    .reduce((acc, t) => acc + parseFloat(t.sendAmountGbp), 0);
+  const transferCount = transfers.length;
+
+  const recent = transfers.slice(0, 5);
+  const isApproved = user.kycStatus === "approved";
 
   return (
     <SafeAreaView className="flex-1 bg-bg-50">
@@ -81,8 +113,8 @@ export default function DashboardScreen() {
         )}
 
         <View className="mt-8 flex-row gap-3">
-          <StatCard label="Total sent" value="£0.00" />
-          <StatCard label="Transfers" value="0" />
+          <StatCard label="Total sent" value={loadingTransfers ? "…" : formatGbp(totalSent)} />
+          <StatCard label="Transfers" value={loadingTransfers ? "…" : String(transferCount)} />
         </View>
 
         <Card className="mt-6">
@@ -94,31 +126,43 @@ export default function DashboardScreen() {
             <View className="mt-4">
               <Button
                 size="lg"
-                variant={user.kycStatus === "approved" ? "accent" : "secondary"}
-                disabled={user.kycStatus !== "approved"}
+                variant={isApproved ? "accent" : "secondary"}
+                disabled={!isApproved}
                 onPress={() => {
-                  if (user.kycStatus !== "approved") {
+                  if (!isApproved) {
                     router.push("/onboarding/otp");
                     return;
                   }
-                  Alert.alert(
-                    "Send money",
-                    "The send money flow is built in Evening 5. Evenings 3 and 4 ship KYC capture and recipients first.",
-                  );
+                  router.push("/(tabs)/send");
                 }}
               >
-                {user.kycStatus === "approved" ? "Start a transfer" : "Verify first to send"}
+                {isApproved ? "Start a transfer" : "Verify first to send"}
               </Button>
             </View>
           </CardBody>
         </Card>
 
         <Card className="mt-6">
-          <CardHeader title="Recent transfers" description="Your last transfers will show here" />
+          <CardHeader
+            title="Recent transfers"
+            description={
+              recent.length > 0 ? `Your last ${recent.length}` : "Your last transfers will show here"
+            }
+          />
           <CardBody>
-            <Text className="text-center text-sm text-text-500">
-              No transfers yet. Start your first one once identity verification is complete.
-            </Text>
+            {loadingTransfers && (
+              <View className="flex-row items-center justify-center gap-2 py-4">
+                <ActivityIndicator size="small" color="#0B2545" />
+                <Text className="text-sm text-text-500">Loading…</Text>
+              </View>
+            )}
+            {!loadingTransfers && recent.length === 0 && (
+              <Text className="text-center text-sm text-text-500">
+                No transfers yet. Start your first one above.
+              </Text>
+            )}
+            {!loadingTransfers &&
+              recent.map((t) => <TransferRow key={t.id} transfer={t} />)}
           </CardBody>
         </Card>
 
@@ -141,6 +185,44 @@ function StatCard({ label, value }: { label: string; value: string }) {
         {label}
       </Text>
       <Text className="mt-2 text-2xl font-bold text-text-900">{value}</Text>
+    </View>
+  );
+}
+
+function TransferRow({ transfer }: { transfer: TransferSummary }) {
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: "#E6EAF0",
+      }}
+    >
+      <View style={{ flex: 1, marginRight: 8 }}>
+        <Text style={{ fontFamily: "monospace", fontSize: 11, color: "#5B6B7F" }}>
+          {transfer.reference}
+        </Text>
+        <Text style={{ fontSize: 14, fontWeight: "600", color: "#0B1A2C", marginTop: 2 }}>
+          {transfer.recipientName}
+        </Text>
+        <Text style={{ fontSize: 11, color: "#5B6B7F", marginTop: 2 }}>
+          {formatRelative(transfer.createdAt)}
+        </Text>
+      </View>
+      <View style={{ alignItems: "flex-end" }}>
+        <Text style={{ fontSize: 14, fontWeight: "700", color: "#0B1A2C" }}>
+          {formatGbp(transfer.sendAmountGbp)}
+        </Text>
+        <Text style={{ fontSize: 11, color: "#5B6B7F" }}>
+          {formatPkr(transfer.receiveAmountPkr)}
+        </Text>
+        <View style={{ marginTop: 4 }}>
+          <StatusPill status={transfer.status} />
+        </View>
+      </View>
     </View>
   );
 }

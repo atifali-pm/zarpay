@@ -9,6 +9,7 @@ import * as SecureStore from "expo-secure-store";
 import type {
   ApiError,
   CreateRecipientRequest,
+  CreateTransferRequest,
   CurrentRateResponse,
   OtpSendResponse,
   OtpVerifyRequest,
@@ -24,6 +25,7 @@ import type {
   SignUpRequest,
   SignUpResponse,
   TransferDetail,
+  TransferSummary,
   UpdateRecipientRequest,
 } from "@zarpay/types";
 
@@ -211,6 +213,32 @@ export const api = {
       method: "POST",
       body: JSON.stringify(body),
     });
+  },
+
+  async listTransfers(): Promise<TransferSummary[]> {
+    const res = await request<{ transfers: TransferSummary[] }>("/api/transfers");
+    return res.transfers;
+  },
+
+  async createTransfer(body: CreateTransferRequest): Promise<TransferDetail> {
+    return request<TransferDetail>("/api/transfers", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  },
+
+  async confirmDevPayment(id: string): Promise<TransferDetail> {
+    return request<TransferDetail>(
+      `/api/transfers/${encodeURIComponent(id)}/confirm-payment`,
+      { method: "POST" },
+    );
+  },
+
+  async cancelTransfer(id: string): Promise<TransferDetail> {
+    return request<TransferDetail>(
+      `/api/transfers/${encodeURIComponent(id)}/cancel`,
+      { method: "POST" },
+    );
   },
 
   async getTransferDetail(id: string): Promise<TransferDetail> {
