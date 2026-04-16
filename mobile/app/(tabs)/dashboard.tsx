@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -164,7 +164,13 @@ export default function DashboardScreen() {
               </Text>
             )}
             {!loadingTransfers &&
-              recent.map((t) => <TransferRow key={t.id} transfer={t} />)}
+              recent.map((t) => (
+                <TransferRow
+                  key={t.id}
+                  transfer={t}
+                  onPress={() => router.push(`/(tabs)/transfers/${t.id}` as never)}
+                />
+              ))}
           </CardBody>
         </Card>
 
@@ -191,40 +197,55 @@ function StatCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-function TransferRow({ transfer }: { transfer: TransferSummary }) {
+function TransferRow({
+  transfer,
+  onPress,
+}: {
+  transfer: TransferSummary;
+  onPress: () => void;
+}) {
   return (
     <View
       style={{
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "flex-start",
-        paddingVertical: 12,
         borderBottomWidth: 1,
         borderBottomColor: "#E6EAF0",
+        overflow: "hidden",
       }}
     >
-      <View style={{ flex: 1, marginRight: 8 }}>
-        <Text style={{ fontFamily: "monospace", fontSize: 11, color: "#5B6B7F" }}>
-          {transfer.reference}
-        </Text>
-        <Text style={{ fontSize: 14, fontWeight: "600", color: "#0B1A2C", marginTop: 2 }}>
-          {transfer.recipientName}
-        </Text>
-        <Text style={{ fontSize: 11, color: "#5B6B7F", marginTop: 2 }}>
-          {formatRelative(transfer.createdAt)}
-        </Text>
-      </View>
-      <View style={{ alignItems: "flex-end" }}>
-        <Text style={{ fontSize: 14, fontWeight: "700", color: "#0B1A2C" }}>
-          {formatGbp(transfer.sendAmountGbp)}
-        </Text>
-        <Text style={{ fontSize: 11, color: "#5B6B7F" }}>
-          {formatPkr(transfer.receiveAmountPkr)}
-        </Text>
-        <View style={{ marginTop: 4 }}>
-          <StatusPill status={transfer.status} />
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => ({
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          paddingVertical: 12,
+          paddingHorizontal: 4,
+          backgroundColor: pressed ? "#F6F8FB" : "transparent",
+        })}
+      >
+        <View style={{ flex: 1, marginRight: 8 }}>
+          <Text style={{ fontFamily: "monospace", fontSize: 11, color: "#5B6B7F" }}>
+            {transfer.reference}
+          </Text>
+          <Text style={{ fontSize: 14, fontWeight: "600", color: "#0B1A2C", marginTop: 2 }}>
+            {transfer.recipientName}
+          </Text>
+          <Text style={{ fontSize: 11, color: "#5B6B7F", marginTop: 2 }}>
+            {formatRelative(transfer.createdAt)}
+          </Text>
         </View>
-      </View>
+        <View style={{ alignItems: "flex-end" }}>
+          <Text style={{ fontSize: 14, fontWeight: "700", color: "#0B1A2C" }}>
+            {formatGbp(transfer.sendAmountGbp)}
+          </Text>
+          <Text style={{ fontSize: 11, color: "#5B6B7F" }}>
+            {formatPkr(transfer.receiveAmountPkr)}
+          </Text>
+          <View style={{ marginTop: 4 }}>
+            <StatusPill status={transfer.status} />
+          </View>
+        </View>
+      </Pressable>
     </View>
   );
 }

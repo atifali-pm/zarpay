@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /**
  * Bottom tab shell for the authenticated sender area.
- * Home + Send + Recipients so far. Transfers history comes in Evening 6.
+ * Home + Send + History + Recipients.
  *
  * Height expands to include the device's bottom safe area so the tap
  * targets sit above Android's gesture navigation bar. Without this, a
@@ -47,6 +47,15 @@ export default function TabsLayout() {
           title: "Send",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="paper-plane-outline" size={size ?? 22} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="transfers"
+        options={{
+          title: "History",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="time-outline" size={size ?? 22} color={color} />
           ),
         }}
       />
