@@ -4,8 +4,22 @@
  * code changes. Carries a bearer token from `expo-secure-store` on
  * authenticated calls.
  */
+import { Platform } from "react-native";
 import Constants from "expo-constants";
-import * as SecureStore from "expo-secure-store";
+import * as SecureStoreNative from "expo-secure-store";
+
+const SecureStore = Platform.OS === "web"
+  ? {
+      getItemAsync: async (key: string) =>
+        typeof localStorage !== "undefined" ? localStorage.getItem(key) : null,
+      setItemAsync: async (key: string, value: string) => {
+        if (typeof localStorage !== "undefined") localStorage.setItem(key, value);
+      },
+      deleteItemAsync: async (key: string) => {
+        if (typeof localStorage !== "undefined") localStorage.removeItem(key);
+      },
+    }
+  : SecureStoreNative;
 import type {
   ApiError,
   CreateRecipientRequest,

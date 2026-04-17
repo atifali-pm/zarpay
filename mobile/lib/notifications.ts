@@ -1,5 +1,5 @@
-import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
+import * as Notifications from "expo-notifications";
 
 /**
  * Local notification helpers. For the demo, notifications are fired
@@ -8,17 +8,20 @@ import { Platform } from "react-native";
  * tokens. Zero cost either way (Expo push service is free).
  */
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+if (Platform.OS !== "web") {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
 
 export async function requestNotificationPermission(): Promise<boolean> {
+  if (Platform.OS === "web") return true;
   if (Platform.OS === "android") {
     await Notifications.setNotificationChannelAsync("transfers", {
       name: "Transfers",
@@ -36,6 +39,7 @@ export async function showTransferNotification(
   reference: string,
   status: string,
 ): Promise<void> {
+  if (Platform.OS === "web") return;
   const statusLabels: Record<string, string> = {
     funded: "Payment received",
     compliance_hold: "Held for compliance review",
