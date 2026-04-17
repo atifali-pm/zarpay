@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   Pressable,
   ScrollView,
   Text,
@@ -17,7 +18,7 @@ import type {
   RecipientWalletDetails,
   TransferDetail,
 } from "@zarpay/types";
-import { api, ApiClientError } from "@/lib/api";
+import { api, ApiClientError, API_URL } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
 import { Card, CardBody } from "@/components/ui/Card";
 import { Logo } from "@/components/ui/Logo";
@@ -267,13 +268,23 @@ function Detail({
         </CardBody>
       </Card>
 
-      {canCancel && (
-        <View style={{ marginTop: 24 }}>
+      <View style={{ marginTop: 24, gap: 12 }}>
+        <Button
+          variant="secondary"
+          onPress={() => {
+            // Open the printable receipt in the system browser. The receipt
+            // route now accepts bearer tokens alongside NextAuth sessions.
+            Linking.openURL(`${API_URL}/api/transfers/${transfer.id}/receipt`);
+          }}
+        >
+          View receipt
+        </Button>
+        {canCancel && (
           <Button variant="destructive" loading={cancelling} onPress={onCancel}>
             Cancel transfer
           </Button>
-        </View>
-      )}
+        )}
+      </View>
     </View>
   );
 }

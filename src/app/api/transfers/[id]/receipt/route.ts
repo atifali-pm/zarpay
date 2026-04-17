@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { getBearerUser } from "@/lib/api-auth";
 import { prisma } from "@/lib/db";
 import { formatGbp, formatPkr } from "@/lib/money";
 import { formatDateTime } from "@/lib/format";
@@ -7,9 +8,27 @@ import { TRANSFER_STATUS_LABELS } from "@/lib/transfer-state";
 
 export const runtime = "nodejs";
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+/**
+ * Accepts either a NextAuth session cookie (web) or a bearer token (mobile).
+ * This dual-auth approach lets both the web transfer detail page and the mobile
+ * app link to the same receipt URL.
+ */
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+  // Try NextAuth session first (web), then bearer token (mobile).
+  let userId: string | null = null;
+  let userRole: string | null = null;
   const session = await auth();
-  if (!session?.user?.id) {
+  if (session?.user?.id) {
+    userId = session.user.id;
+    userRole = session.user.role ?? null;
+  } else {
+    const bearerUser = await getBearerUser(req);
+    if (bearerUser) {
+      userId = bearerUser.id;
+      userRole = bearerUser.role;
+    }
+  }
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -19,9 +38,8 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   });
   if (!t) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const role = session.user.role;
-  const isAdmin = role === "reviewer" || role === "compliance" || role === "admin";
-  if (!isAdmin && t.senderId !== session.user.id) {
+  const isAdmin = userRole === "reviewer" || userRole === "compliance" || userRole === "admin";
+  if (!isAdmin && t.senderId !== userId) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

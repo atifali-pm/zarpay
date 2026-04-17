@@ -14,6 +14,7 @@ import {
   type ReactNode,
 } from "react";
 import { api, ApiClientError } from "./api";
+import { isBiometricEnabled, promptBiometric } from "./biometric";
 import type { PublicUser, SignUpRequest } from "@zarpay/types";
 
 export type AuthState =
@@ -37,6 +38,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const hydrate = useCallback(async () => {
     try {
       const { user } = await api.getMe();
+      // If biometric is enabled, prompt before unlocking. If biometric fails,
+      // stay on the loading screen (the user can retry or fall back to the
+      // password flow via the landing page).
+      const bioOn = await isBiometricEnabled();
+      if (bioOn) {
+        const ok = await promptBiometric();
+        if (!ok) {
+          // Biometric failed or cancelled. Drop to unauthenticated so the
+          // user can log in with email + password instead.
+          setState({ status: "unauthenticated" });
+          return;
+        }
+      }
       setState({ status: "authenticated", user });
     } catch (err) {
       // Any 401 or network error means no valid session. Clear any stored

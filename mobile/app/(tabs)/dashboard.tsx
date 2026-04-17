@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -6,6 +6,7 @@ import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import type { TransferSummary } from "@zarpay/types";
 import { useAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
+import { showTransferNotification } from "@/lib/notifications";
 import { formatGbp, formatPkr, formatRelative } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
@@ -27,10 +28,21 @@ export default function DashboardScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const [transfers, setTransfers] = useState<TransferSummary[]>([]);
   const [loadingTransfers, setLoadingTransfers] = useState(true);
+  // Track the last known status per transfer so we can fire local
+  // notifications when a status changes on refresh.
+  const prevStatuses = useRef<Record<string, string>>({});
 
   const loadTransfers = useCallback(async () => {
     try {
       const list = await api.listTransfers();
+      // Fire local notification for any status change the user has not seen.
+      for (const t of list) {
+        const prev = prevStatuses.current[t.id];
+        if (prev && prev !== t.status) {
+          void showTransferNotification(t.reference, t.status);
+        }
+        prevStatuses.current[t.id] = t.status;
+      }
       setTransfers(list);
     } catch {
       // Silent on dashboard, just leave empty
