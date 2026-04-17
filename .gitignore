@@ -51,3 +51,4 @@ prisma/migrations/dev.db*
 # stray .expo dir at repo root (expo-cli sometimes creates this when run
 # accidentally from the workspace root instead of the mobile/ subdir)
 /.expo/
+app.json
