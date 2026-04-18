@@ -39,6 +39,7 @@ jobs:
 
     env:
       PROFILE: ${{ github.event.inputs.profile || 'preview' }}
+      EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
 
     steps:
       - name: Checkout repo
