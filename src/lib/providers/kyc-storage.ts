@@ -14,6 +14,37 @@ export interface KycStorageProvider {
   read(filePath: string): Promise<{ bytes: Buffer; mimeType: string } | null>;
 }
 
+class VercelBlobKycStorageProvider implements KycStorageProvider {
+  name = "vercel_blob";
+
+  async store(args: {
+    userId: string;
+    docType: string;
+    fileName: string;
+    bytes: Buffer;
+    mimeType: string;
+  }) {
+    const { put } = await import("@vercel/blob");
+    const ext = path.extname(args.fileName) || mimeToExt(args.mimeType);
+    const key = `kyc/${args.userId}/${args.docType}-${crypto.randomBytes(6).toString("hex")}${ext}`;
+    const blob = await put(key, args.bytes, {
+      access: "public",
+      contentType: args.mimeType,
+      addRandomSuffix: false,
+    });
+    return { filePath: blob.url, sizeBytes: args.bytes.byteLength };
+  }
+
+  async read(filePath: string) {
+    if (!/^https?:\/\//.test(filePath)) return null;
+    const res = await fetch(filePath);
+    if (!res.ok) return null;
+    const mimeType = res.headers.get("content-type") ?? "application/octet-stream";
+    const bytes = Buffer.from(await res.arrayBuffer());
+    return { bytes, mimeType };
+  }
+}
+
 class LocalKycStorageProvider implements KycStorageProvider {
   name = "local";
   private root = path.join(process.cwd(), "kyc-uploads");
@@ -68,5 +99,7 @@ function extToMime(ext: string): string {
 }
 
 export function getKycStorageProvider(): KycStorageProvider {
+  const choice = (process.env.KYC_STORAGE_PROVIDER ?? "local").toLowerCase();
+  if (choice === "vercel_blob") return new VercelBlobKycStorageProvider();
   return new LocalKycStorageProvider();
 }

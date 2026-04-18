@@ -8,6 +8,27 @@ Built single corridor on purpose. Depth over breadth.
 
 ---
 
+## Download for Android
+
+The latest preview APK is built automatically on every push to the `demo` branch by `.github/workflows/android-apk.yml` (runs on a free GitHub Actions runner, uses zero EAS cloud build credits).
+
+| Link | What you get |
+|---|---|
+| [Latest release page](https://github.com/atifali-pm/zarpay/releases/tag/demo-latest) | Downloadable APK, always pointing at the freshest `demo` branch build. |
+| [Direct APK download](https://github.com/atifali-pm/zarpay/releases/latest/download/zarpay-preview.apk) | Stable URL for install. |
+
+Install steps on Android:
+
+1. On your phone, open the release link above.
+2. Download the `.apk` attachment.
+3. Open the downloaded file. Android may ask you to enable "Install unknown apps" for your browser on first run — this is only needed once.
+4. Install. Launch Zarpay from your app drawer.
+5. Sign in with a demo account (see the sign in screen for credentials, or use `sender@zarpay.dev` / `password123`).
+
+The app talks to the hosted backend at the URL baked in at build time, so no local dev server is needed to use it.
+
+---
+
 ## Why one corridor
 
 Most remittance apps fan out across dozens of corridors and lose the plot. Zarpay does one route well: GBP to PKR. That means deeper bank and wallet integrations on the Pakistan side, sharper UX for the British Pakistani diaspora, and pricing that holds up to comparison rather than hiding behind a "starting from" rate.
