@@ -53,6 +53,27 @@ The UK to Pakistan corridor moved over £4 billion last year. It is one of the m
 
 ## Screenshots
 
+### Mobile app
+
+Captured from the real React Native app (Expo SDK 54, React Native 0.81) running under `react-native-web` at a 390x844 phone viewport, driven by `scripts/mobile-screenshots.mjs`, then wrapped in a phone frame by `scripts/phone-frame.sh`.
+
+| | | |
+|---|---|---|
+| ![Dashboard](docs/phone-frames/01-dashboard.png) | ![Send amount](docs/phone-frames/02-send-amount.png) | ![Send review](docs/phone-frames/03-send-review.png) |
+| **Home.** Greeting, total sent, transfer count, start a transfer CTA, recent transfers with status pills. | **Send amount.** Type GBP, see the PKR payout live, pick the saved recipient. | **Send review.** Rate, disclosed spread, fee, total. Quote locks for 60 minutes on confirm. |
+
+| | | |
+|---|---|---|
+| ![Transfer detail](docs/phone-frames/04-transfer-detail.png) | ![History](docs/phone-frames/05-history.png) | ![Recipients](docs/phone-frames/06-recipients.png) |
+| **Transfer detail.** Amount, recipient, and a vertical timeline with every state change. | **History.** Every transfer, newest first, with status pills and amounts in both currencies. | **Recipients.** Saved bank, mobile wallet, and cash pickup destinations. |
+
+| | |
+|---|---|
+| ![KYC wizard step one](docs/phone-frames/07-kyc.png) | ![Settings](docs/phone-frames/08-settings.png) |
+| **KYC wizard.** Five step flow starting with ID type. Front, back, and selfie are captured on device through `expo-image-picker`. | **Settings.** Account info, biometric unlock toggle, transfer notifications, Expo SDK + React Native version info, log out. |
+
+### Web
+
 Captured by `scripts/screenshots.mjs` (Playwright headless Chromium, 1440x900, 2x device pixel ratio) against the seeded demo data.
 
 ### Public
