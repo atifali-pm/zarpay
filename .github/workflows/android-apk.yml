@@ -6,8 +6,8 @@ name: Build Android APK
 # quota. Public repos get unlimited Actions minutes, private repos get 2000/month.
 #
 # Triggers:
-#   - Any push to the `demo` branch. Builds a preview APK and refreshes the
-#     `demo-latest` GitHub Release so the download URL is stable.
+#   - Any push to the `main` branch. Builds a preview APK and refreshes the
+#     `android-latest` GitHub Release so the download URL is stable.
 #   - Manual (workflow_dispatch) from the Actions tab for ad-hoc rebuilds.
 #
 # Prerequisite:
@@ -26,7 +26,7 @@ on:
           - production
   push:
     branches:
-      - demo
+      - main
 
 permissions:
   contents: write
@@ -95,16 +95,16 @@ jobs:
           path: zarpay-${{ env.PROFILE }}.*
           retention-days: 90
 
-      - name: Refresh `demo-latest` GitHub Release
-        if: github.ref == 'refs/heads/demo'
+      - name: Refresh `android-latest` GitHub Release
+        if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: demo-latest
-          name: Demo build (latest)
+          tag_name: android-latest
+          name: Android build (latest)
           files: zarpay-${{ env.PROFILE }}.*
           body: |
-            Latest Zarpay Android APK, built from commit ${{ github.sha }} on the `demo` branch.
+            Latest Zarpay Android APK, built from commit ${{ github.sha }} on `main`.
             Built on a GitHub Actions runner via `eas build --local`, zero EAS cloud credits.
-            This release is replaced on every push to `demo`, so the download URL stays stable.
+            This release is replaced on every push to `main`, so the download URL stays stable.
           generate_release_notes: false
           make_latest: "true"

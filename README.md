@@ -10,11 +10,11 @@ Built single corridor on purpose. Depth over breadth.
 
 ## Download for Android
 
-The latest preview APK is built automatically on every push to the `demo` branch by `.github/workflows/android-apk.yml` (runs on a free GitHub Actions runner, uses zero EAS cloud build credits).
+The latest preview APK is built automatically on every push to `main` by `.github/workflows/android-apk.yml` (runs on a free GitHub Actions runner, uses zero EAS cloud build credits).
 
 | Link | What you get |
 |---|---|
-| [Latest release page](https://github.com/atifali-pm/zarpay/releases/tag/demo-latest) | Downloadable APK, always pointing at the freshest `demo` branch build. |
+| [Latest release page](https://github.com/atifali-pm/zarpay/releases/tag/android-latest) | Downloadable APK, always pointing at the freshest `main` build. |
 | [Direct APK download](https://github.com/atifali-pm/zarpay/releases/latest/download/zarpay-preview.apk) | Stable URL for install. |
 
 Install steps on Android:
