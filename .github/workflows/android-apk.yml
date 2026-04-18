@@ -28,6 +28,9 @@ on:
     branches:
       - demo
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build APK on Ubuntu runner
