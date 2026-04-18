@@ -1,0 +1,34 @@
+# Copy this file to scripts/deploy.config and edit the values for your project.
+# DO NOT commit scripts/deploy.config — it is gitignored.
+
+# Project identity
+PROJECT_NAME="my-app"
+GITHUB_REPO="your-org/my-app"
+
+# Regions (pair Neon and Vercel geographically)
+#   EU:      NEON_REGION=aws-eu-central-1  VERCEL_REGION=fra1
+#   US East: NEON_REGION=aws-us-east-1     VERCEL_REGION=iad1
+#   US West: NEON_REGION=aws-us-west-2     VERCEL_REGION=sfo1
+NEON_REGION="aws-eu-central-1"
+VERCEL_REGION="fra1"
+
+# Leave empty to skip. Set to "vercel_blob" to auto-create a <project>-kyc Blob store
+# and set KYC_STORAGE_PROVIDER=vercel_blob in the Vercel env.
+KYC_STORAGE="vercel_blob"
+
+# Relative path to the Expo / React Native mobile app, if any. If this directory
+# does not exist the GitHub Actions variable step is skipped.
+MOBILE_DIR="mobile"
+
+# Project-specific env vars, one per line, KEY=value format.
+# The core auth + DB + JWT + NEXTAUTH_URL vars are set automatically — do not duplicate.
+EXTRA_ENV_VARS="
+FX_SOURCE=frankfurter
+FX_SPREAD_BPS=120
+FEE_FIXED_GBP=1.99
+PAYMENT_IN_PROVIDER=dev
+PAYOUT_PROVIDER=dev
+OTP_PROVIDER=dev
+EMAIL_PROVIDER=dev
+SMS_PROVIDER=dev
+"

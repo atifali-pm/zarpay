@@ -52,3 +52,4 @@ prisma/migrations/dev.db*
 # accidentally from the workspace root instead of the mobile/ subdir)
 /.expo/
 app.json
+scripts/deploy.config
