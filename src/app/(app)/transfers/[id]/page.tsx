@@ -34,7 +34,13 @@ export default async function TransferDetailPage({ params }: { params: { id: str
           </div>
           <div className="mt-2 flex gap-3">
             <Button asChild variant="ghost" size="sm">
-              <Link href={`/api/transfers/${transfer.id}/receipt`}>Download receipt</Link>
+              <a
+                href={`/api/transfers/${transfer.id}/receipt`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Download receipt
+              </a>
             </Button>
             {transfer.status === "pending_payment" && transfer.paymentIntentId && (
               <Button asChild size="sm">
