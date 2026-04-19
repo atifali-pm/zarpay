@@ -1,5 +1,5 @@
 import type { TransferEvent } from "@prisma/client";
-import { formatDateTime } from "@/lib/format";
+import { formatDateTime, formatRelative } from "@/lib/format";
 
 const EVENT_LABELS: Record<string, string> = {
   quote_created: "Quote locked",
@@ -27,7 +27,11 @@ export function TransferTimeline({ events }: { events: TransferEvent[] }) {
           <h4 className="text-body font-semibold text-text-900">
             {EVENT_LABELS[e.eventType] ?? e.eventType}
           </h4>
-          <p className="text-caption text-text-500">{formatDateTime(e.createdAt)}</p>
+          <p className="text-caption text-text-500">
+            <span className="font-medium text-text-700">{formatRelative(e.createdAt)}</span>
+            <span className="mx-1.5 text-border">·</span>
+            {formatDateTime(e.createdAt)}
+          </p>
           {e.fromStatus && (
             <p className="text-caption text-text-500">
               {e.fromStatus} → {e.toStatus}
