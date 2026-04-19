@@ -32,16 +32,7 @@ export default async function TransferDetailPage({ params }: { params: { id: str
             <h1 className="text-display-lg font-display font-bold">{transfer.reference}</h1>
             <StatusPill status={transfer.status} />
           </div>
-          <div className="mt-2 flex gap-3">
-            <Button asChild variant="ghost" size="sm">
-              <a
-                href={`/api/transfers/${transfer.id}/receipt`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Download receipt
-              </a>
-            </Button>
+          <div className="mt-3 flex flex-wrap gap-2">
             {transfer.status === "pending_payment" && transfer.paymentIntentId && (
               <Button asChild size="sm">
                 <Link
@@ -53,6 +44,29 @@ export default async function TransferDetailPage({ params }: { params: { id: str
                 </Link>
               </Button>
             )}
+            <Button asChild size="sm" variant="secondary">
+              <a
+                href={`/api/transfers/${transfer.id}/receipt`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                View receipt
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="ml-1.5 h-3.5 w-3.5"
+                >
+                  <path d="M15 3h6v6" />
+                  <path d="M10 14 21 3" />
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                </svg>
+              </a>
+            </Button>
           </div>
         </div>
 

@@ -142,9 +142,38 @@ export default async function DashboardPage() {
         </CardHeader>
         <CardContent>
           {transfers.length === 0 ? (
-            <p className="text-body text-text-500 text-center py-8">
-              No transfers yet. Your recent transfers will appear here.
-            </p>
+            <div className="py-10 flex flex-col items-center text-center">
+              <div className="h-14 w-14 rounded-full bg-primary-100 flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-7 w-7 text-primary-700"
+                >
+                  <path d="M22 2 11 13" />
+                  <path d="M22 2 15 22l-4-9-9-4z" />
+                </svg>
+              </div>
+              <p className="mt-4 text-body font-semibold text-text-900">
+                No transfers yet
+              </p>
+              <p className="mt-1 text-caption text-text-500 max-w-sm">
+                Send your first transfer to Pakistan. Quote locked for 60 minutes, mid-market rate, disclosed spread.
+              </p>
+              {kycApproved ? (
+                <Button asChild size="sm" className="mt-4">
+                  <Link href="/send">Start your first transfer →</Link>
+                </Button>
+              ) : (
+                <p className="mt-4 text-caption text-text-500">
+                  Complete KYC above to start sending.
+                </p>
+              )}
+            </div>
           ) : (
             <div className="space-y-3">
               {transfers.map((t) => (

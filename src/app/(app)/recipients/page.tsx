@@ -75,6 +75,8 @@ export default async function RecipientsPage() {
                         <Row label="Pickup name" value={details.full_name} />
                       </>
                     )}
+                    {r.phone && <Row label="Phone" value={r.phone} />}
+                    {details.contact_email && <Row label="Email" value={details.contact_email} />}
                   </dl>
                   <div className="mt-4 flex items-center gap-2">
                     <Button asChild variant="secondary" size="sm">
